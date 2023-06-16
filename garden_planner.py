@@ -1,5 +1,8 @@
+# Usage: python garden_planner.py <zone> <plants,comma,sep,list>
+# Example: python garden_planner.py 8b radishes,potatoes,turnips,thyme
+
 import garden_schema as gs # garden_schema.py, actually calls GPT-4 API
-import json, os
+import json, os, sys
 
 from pathlib import Path
 
@@ -28,6 +31,7 @@ def get_test_schema():
 
         f.write(jdata)
 #####
+
 def sanitize_json(data):
     """
     Goes through the JSON and makes sure that all the values are valid JSON.
@@ -46,21 +50,30 @@ def sanitize_json(data):
 
 if __name__ == "__main__":
 
+    zone = sys.argv[1]
+    plants = sys.argv[2].split(",")
+
     root = os.path.dirname(os.path.abspath(__file__))
     templates_dir = os.path.join(root, 'templates')
     env = Environment( loader = FileSystemLoader(templates_dir) )
     template = env.get_template('template.html')
 
-    with open("test_data.json", "r") as f:
-        data = json.loads(f.read())
+    garden_object = {}
 
-        data = sanitize_json(data)
+    for plant in plants:
+        plant_data = gs.get_plant_data(plant, zone)
+        garden_object[plant] = plant_data
 
-        filename = os.path.join(root, 'output.html')
-        with open(filename, 'w') as fh:
-            fh.write(template.render(plants=data))
+    garden_object = sanitize_json(garden_object)
 
+    filename = os.path.join(root, 'output.html')
+
+    with open(filename, 'w') as fh:
+        fh.write(template.render(plants=garden_object, zone=zone))
         htmldoc = HTML(string=open("output.html", "r").read(), base_url="")
-        
-
         Path("out.pdf").write_bytes(htmldoc.write_pdf())
+
+        print("PDF version written to out.pdf")
+        print("HTML version written to output.html")
+
+        
