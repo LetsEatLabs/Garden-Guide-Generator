@@ -7,10 +7,13 @@ Data delivered includes growing requirements (soil, water, light), planting and 
 
 ## Installation
 
+You need access to OopenAI model `gpt4-0613` or newer via your API key.
+
 ```
 python3 -m venv env
 source env/bin/activate
 pip install -r requirements.txt
+export OPENAI_API_KEY="sk-yourkeyhere".
 ```
 
 ## Usage
